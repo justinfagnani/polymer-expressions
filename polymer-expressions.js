@@ -1,6 +1,6 @@
 'use strict';
 
-define(['exports'], function (exports) {
+define('polymer-expressions/parser', ['exports'], function (exports) {
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
@@ -606,7 +606,7 @@ define(['exports'], function (exports) {
 });
 'use strict';
 
-define(['exports'], function (exports) {
+define('polymer-expressions/eval', ['exports'], function (exports) {
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
