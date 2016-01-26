@@ -25,6 +25,12 @@ const _UNARY_OPERATORS = {
   '!': function(a) { return !a; },
 };
 
+export const createScope = (parent) => {
+  let scope = Object.create(parent);
+  scope['this'] = scope['this'] || parent;
+  return scope;
+}
+
 export class EvalAstFactory {
 
   empty() {
