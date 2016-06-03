@@ -1,8 +1,8 @@
 'use strict';
 
 let assert = require('assert');
-let parser = require('../src/parser');
-let ast_factory = require('../src/ast_factory');
+let parser = require('../lib/parser');
+let ast_factory = require('../lib/ast_factory');
 
 let Parser = parser.Parser;
 let astFactory = new ast_factory.AstFactory();

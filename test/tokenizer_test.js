@@ -1,21 +1,21 @@
 'use strict';
 
-import * as assert from 'assert';
-import * as tokenizer from '../src/parser';
+const assert = require('assert');
+const tokenizer = require('../lib/parser');
 
-var Tokenizer = tokenizer.Tokenizer;
-var STRING = tokenizer.STRING;
-var IDENTIFIER = tokenizer.IDENTIFIER;
-var DOT = tokenizer.DOT;
-var COMMA = tokenizer.COMMA;
-var COLON = tokenizer.COLON;
-var INTEGER = tokenizer.INTEGER;
-var DECIMAL = tokenizer.DECIMAL;
-var OPERATOR = tokenizer.OPERATOR;
-var GROUPER = tokenizer.GROUPER;
-var KEYWORD = tokenizer.KEYWORD;
-var POSTFIX_PRECEDENCE = tokenizer.POSTFIX_PRECEDENCE;
-var PRECEDENCE = tokenizer.PRECEDENCE;
+let Tokenizer = tokenizer.Tokenizer;
+let STRING = tokenizer.STRING;
+let IDENTIFIER = tokenizer.IDENTIFIER;
+let DOT = tokenizer.DOT;
+let COMMA = tokenizer.COMMA;
+let COLON = tokenizer.COLON;
+let INTEGER = tokenizer.INTEGER;
+let DECIMAL = tokenizer.DECIMAL;
+let OPERATOR = tokenizer.OPERATOR;
+let GROUPER = tokenizer.GROUPER;
+let KEYWORD = tokenizer.KEYWORD;
+let POSTFIX_PRECEDENCE = tokenizer.POSTFIX_PRECEDENCE;
+let PRECEDENCE = tokenizer.PRECEDENCE;
 
 function tokenize(s) {
   let tokenizer = new Tokenizer(s);
@@ -28,7 +28,7 @@ function tokenize(s) {
 }
 
 function expectTokens(s, expected) {
-  var tokens = tokenize(s);
+  let tokens = tokenize(s);
   assert.deepEqual(tokens, expected);
 }
 

@@ -1,8 +1,8 @@
 'use strict';
 
 let assert = require('assert');
-let parser = require('../src/parser');
-let evaluate = require('../src/eval');
+let parser = require('../lib/parser');
+let evaluate = require('../lib/eval');
 
 let Parser = parser.Parser;
 

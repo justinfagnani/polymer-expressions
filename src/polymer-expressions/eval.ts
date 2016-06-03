@@ -1,62 +1,72 @@
 'use strict';
 
+import * as ast from './ast_factory';
+
 const _BINARY_OPERATORS = {
-  '+':   function(a, b) { return a + b; },
-  '-':   function(a, b) { return a - b; },
-  '*':   function(a, b) { return a * b; },
-  '/':   function(a, b) { return a / b; },
-  '%':   function(a, b) { return a % b; },
-  '==':  function(a, b) { return a == b; },
-  '!=':  function(a, b) { return a != b; },
-  '===': function(a, b) { return a === b; },
-  '!==': function(a, b) { return a !== b; },
-  '>':   function(a, b) { return a > b; },
-  '>=':  function(a, b) { return a >= b; },
-  '<':   function(a, b) { return a < b; },
-  '<=':  function(a, b) { return a <= b; },
-  '||':  function(a, b) { return a || b; },
-  '&&':  function(a, b) { return a && b; },
-  '|':   function(a, f) { return f(a); },
+  '+':   (a: any, b: any) => a + b,
+  '-':   (a: any, b: any) => a - b,
+  '*':   (a: any, b: any) => a * b,
+  '/':   (a: any, b: any) => a / b,
+  '%':   (a: any, b: any) => a % b,
+  // tslint:disable-next-line:triple-equals
+  '==':  (a: any, b: any) => a == b,
+  // tslint:disable-next-line:triple-equals
+  '!=':  (a: any, b: any) => a != b,
+  '===': (a: any, b: any) => a === b,
+  '!==': (a: any, b: any) => a !== b,
+  '>':   (a: any, b: any) => a > b,
+  '>=':  (a: any, b: any) => a >= b,
+  '<':   (a: any, b: any) => a < b,
+  '<=':  (a: any, b: any) => a <= b,
+  '||':  (a: any, b: any) => a || b,
+  '&&':  (a: any, b: any) => a && b,
+  '|':   (a: any, f: any) => f(a),
 };
 
 const _UNARY_OPERATORS = {
-  '+': function(a) { return a; },
-  '-': function(a) { return -a; },
-  '!': function(a) { return !a; },
+  '+': (a: any) => a,
+  '-': (a: any) => -a,
+  '!': (a: any) => !a,
 };
 
-export const createScope = (parent) => {
+export const createScope = (parent: {[name: string]: any}) => {
   let scope = Object.create(parent);
   scope['this'] = scope['this'] || parent;
   return scope;
+};
+
+export interface EvalAstNode extends ast.AstNode {
+  evaluate(scope: any): any;
+  getIds(idents?: string[]): string[];
 }
 
-export class EvalAstFactory {
+export class EvalAstFactory implements ast.AstFactory {
 
-  empty() {
+  empty(): EvalAstNode & ast.AstNode {
     // TODO(justinfagnani): return null instead?
     return {
-      evaluate: function(scope) { return scope; },
+      type: 'Empty',
+      evaluate(scope) { return scope; },
       getIds(idents) { return idents; },
     };
 
   }
 
   // TODO(justinfagnani): just use a JS literal?
-  literal(v) {
+  literal(v: string | number | boolean): EvalAstNode & ast.LiteralAstNode {
     return {
       type: 'Literal',
       value: v,
-      evaluate: function(scope) { return this.value; },
+      evaluate(scope) { return this.value; },
       getIds(idents) { return idents; },
     };
   }
 
-  id(v) {
+  id(v: string): EvalAstNode & ast.IdAstNode {
     return {
       type: 'ID',
       value: v,
-      evaluate: function(scope) {
+      evaluate(scope) {
         // TODO(justinfagnani): this prevernts access to properties named 'this'
         if (this.value === 'this') return scope;
         return scope[this.value];
@@ -68,27 +78,27 @@ export class EvalAstFactory {
     };
   }
 
-  unary(op, expr) {
+  unary(op: string, expr: EvalAstNode): EvalAstNode & ast.UnaryAstNode {
     let f = _UNARY_OPERATORS[op];
     return {
       type: 'Unary',
       operator: op,
       child: expr,
-      evaluate: function(scope) {
+      evaluate(scope) {
         return f(this.child.evaluate(scope));
       },
       getIds(idents) { return this.child.getIds(idents); },
     };
   }
 
-  binary(l, op, r) {
+  binary(l: EvalAstNode, op: string, r: EvalAstNode): EvalAstNode & ast.BinaryAstNode {
     let f = _BINARY_OPERATORS[op];
     return {
       type: 'Binary',
       operator: op,
       left: l,
       right: r,
-      evaluate: function(scope) {
+      evaluate(scope) {
         return f(this.left.evaluate(scope), this.right.evaluate(scope));
       },
       getIds(idents) {
@@ -99,12 +109,12 @@ export class EvalAstFactory {
     };
   }
 
-  getter(g, n) {
+  getter(g: EvalAstNode, n: string): EvalAstNode & ast.GetterAstNode {
     return {
       type: 'Getter',
       receiver: g,
       name: n,
-      evaluate: function(scope) {
+      evaluate(scope) {
         return this.receiver.evaluate(scope)[this.name];
       },
       getIds(idents) {
@@ -114,7 +124,7 @@ export class EvalAstFactory {
     };
   }
 
-  invoke(receiver, method, args) {
+  invoke(receiver: EvalAstNode, method: string, args: EvalAstNode[]): EvalAstNode & ast.InvokeAstNode {
     if (method != null && typeof method !== 'string') {
       throw new Error('method not a string');
     }
@@ -123,36 +133,34 @@ export class EvalAstFactory {
       receiver: receiver,
       method: method,
       arguments: args,
-      evaluate: function(scope) {
+      evaluate(scope) {
         let receiver = this.receiver.evaluate(scope);
         // TODO(justinfagnani): this might be wrong in cases where we're
         // invoking a top-level function rather than a method. If method is
         // defined on a nested scope, then we should probably set _this to null.
         let _this = this.method ? receiver : scope['this'] || scope;
-        var f = this.method ? receiver[method] : receiver;
-        let argValues = this.arguments.map((a) => a.evaluate(scope));
+        let f = this.method ? receiver[method] : receiver;
+        let argValues: any[] = this.arguments.map((a: EvalAstNode) => a.evaluate(scope));
         return f.apply(_this, argValues);
       },
       getIds(idents) {
         this.receiver.getIds(idents);
-        this.arguments.forEach(function(a) {
-          return a.getIds(idents);
-        });
+        this.arguments.forEach((a: EvalAstNode) => a.getIds(idents));
         return idents;
       },
     };
   }
 
-  parenthesized(e) {
+  paren(e: EvalAstNode): EvalAstNode {
     return e;
   }
 
-  index(e, a) {
+  index(e: EvalAstNode, a: EvalAstNode): EvalAstNode & ast.IndexAstNode {
     return {
       type: 'Index',
       receiver: e,
       argument: a,
-      evaluate: function(scope) {
+      evaluate(scope) {
         return this.receiver.evaluate(scope)[this.argument.evaluate(scope)];
       },
       getIds(idents) {
@@ -162,7 +170,7 @@ export class EvalAstFactory {
     };
   }
 
-  ternary(c, t, f) {
+  ternary(c: EvalAstNode, t: EvalAstNode, f: EvalAstNode): EvalAstNode & ast.TernaryAstNode {
     return {
       type: 'Ternary',
       condition: c,
@@ -185,7 +193,7 @@ export class EvalAstFactory {
     };
   }
 
-  map(entries) {
+  map(entries: {[key: string]: EvalAstNode}): EvalAstNode & ast.MapAstNode {
     return {
       type: 'Map',
       entries: entries,
@@ -206,19 +214,15 @@ export class EvalAstFactory {
   }
 
   // TODO(justinfagnani): if the list is deeply literal
-  list(l) {
+  list(l: EvalAstNode[]): EvalAstNode & ast.ListAstNode {
     return {
       type: 'List',
       items: l,
-      evaluate: function(scope) {
-        return this.items.map(function(a) {
-          return a.evaluate(scope);
-        });
+      evaluate(scope) {
+        return this.items.map((a: EvalAstNode) => a.evaluate(scope));
       },
       getIds(idents) {
-        this.items.forEach(function(i) {
-          i.getIds(idents);
-        });
+        this.items.forEach((i: EvalAstNode) => i.getIds(idents));
         return idents;
       },
     };
