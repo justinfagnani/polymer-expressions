@@ -30,7 +30,7 @@ const bowerProject = typescript.createProject('tsconfig.json', {
   target: 'es5',
   module: 'amd',
   outFile: './polymer-expressions.js',
-  outDir: null,
+  outDir: '',
   rootDir: './src',
 });
 
@@ -63,7 +63,7 @@ gulp.task('build-bower', () => {
 
 gulp.task('build', ['build-npm', 'build-bower']);
 
-gulp.task('clean', (done) => {
+gulp.task('clean', () => {
   fs.removeSync(path.join(__dirname, 'lib'));
   fs.removeSync(path.join(__dirname, 'polymer-expressions.js'));
   fs.removeSync(path.join(__dirname, 'polymer-expressions.min.js'));

@@ -101,7 +101,9 @@ define("polymer-expressions/eval", ["require", "exports"], function (require, ex
         '*': function (a, b) { return a * b; },
         '/': function (a, b) { return a / b; },
         '%': function (a, b) { return a % b; },
+        // tslint:disable-next-line:triple-equals
         '==': function (a, b) { return a == b; },
+        // tslint:disable-next-line:triple-equals
         '!=': function (a, b) { return a != b; },
         '===': function (a, b) { return a === b; },
         '!==': function (a, b) { return a !== b; },
@@ -464,7 +466,7 @@ define("polymer-expressions/parser", ["require", "exports"], function (require, 
             return null;
         };
         Tokenizer.prototype.tokenizeString = function () {
-            var us = "unterminated string";
+            var us = 'unterminated string';
             var quoteChar = this.next;
             this.advance(true);
             while (this.next !== quoteChar) {
@@ -569,7 +571,7 @@ define("polymer-expressions/parser", ["require", "exports"], function (require, 
             this.value = t && t.value;
         };
         Parser.prototype.matches = function (kind, value) {
-            return !(kind && (this.kind != kind) || value && (this.value !== value));
+            return !(kind && (this.kind !== kind) || value && (this.value !== value));
         };
         Parser.prototype.parseExpression = function () {
             if (!this.token)
@@ -601,7 +603,7 @@ define("polymer-expressions/parser", ["require", "exports"], function (require, 
                 }
                 else if (this.matches(exports.OPERATOR)
                     && this.token.precedence >= precedence) {
-                    left = this.value == '?'
+                    left = this.value === '?'
                         ? this.parseTernary(left)
                         : this.parseBinary(left);
                 }
@@ -632,9 +634,9 @@ define("polymer-expressions/parser", ["require", "exports"], function (require, 
             }
             this.advance();
             var right = this.parseUnary();
-            while ((this.kind == exports.OPERATOR
-                || this.kind == exports.DOT
-                || this.kind == exports.GROUPER)
+            while ((this.kind === exports.OPERATOR
+                || this.kind === exports.DOT
+                || this.kind === exports.GROUPER)
                 && this.token.precedence > op.precedence) {
                 right = this.parsePrecedence(right, this.token.precedence);
             }
@@ -690,13 +692,13 @@ define("polymer-expressions/parser", ["require", "exports"], function (require, 
                 case exports.DECIMAL:
                     return this.parseDecimal();
                 case exports.GROUPER:
-                    if (this.value == '(') {
+                    if (this.value === '(') {
                         return this.parseParen();
                     }
-                    else if (this.value == '{') {
+                    else if (this.value === '{') {
                         return this.parseMap();
                     }
-                    else if (this.value == '[') {
+                    else if (this.value === '[') {
                         return this.parseList();
                     }
                     return null;
@@ -741,7 +743,7 @@ define("polymer-expressions/parser", ["require", "exports"], function (require, 
                 this.advance();
                 return this.ast.literal(false);
             }
-            if (value == 'null') {
+            if (value === 'null') {
                 this.advance();
                 return this.ast.literal(null);
             }
